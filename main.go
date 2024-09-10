@@ -2,10 +2,46 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
+
+var (
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+)
+
+type item string
+
+func (i item) FilterValue() string { return "" }
+
+type itemDelegate struct{}
+
+func (d itemDelegate) Height() int                             { return 1 }
+func (d itemDelegate) Spacing() int                            { return 0 }
+func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	i, ok := listItem.(item)
+	if !ok {
+		return
+	}
+
+
+	str := fmt.Sprintf("%d. %s", index+1, i)
+	fn := itemStyle.Render
+	if index == m.Index() {
+		fn = func(s ...string) string {
+			return selectedItemStyle.Render(strings.Join(s, " "))
+		}
+	}
+
+	fmt.Fprint(w, fn(str))
+}
 
 // Don't do any work for now
 func (m checklistModel) Init() tea.Cmd {
@@ -28,24 +64,24 @@ func (m checklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// The "up" and "k" keys move the cursor up
 		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
+			if m.list.Cursor() > 0 {
+				m.list.CursorUp()
 			}
 
 		// The "down" and "j" keys move the cursor down
 		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
+			if m.list.Cursor() < len(m.list.Items())-1 {
+				m.list.CursorDown()
 			}
 
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
 		case "enter", " ":
-			_, ok := m.selected[m.cursor]
+			_, ok := m.selected[m.list.Cursor()]
 			if ok {
-				delete(m.selected, m.cursor)
+				delete(m.selected, m.list.Cursor())
 			} else {
-				m.selected[m.cursor] = struct{}{}
+				m.selected[m.list.Cursor()] = struct{}{}
 			}
 		}
 	}
@@ -56,45 +92,45 @@ func (m checklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m checklistModel) View() string {
-	// The header
-	s := "What should we buy at the market?\n\n"
+	// // The header
+	// s := "What should we buy at the market?\n\n"
 
-	// Iterate over our choices
-	for i, choice := range m.choices {
+	// // Iterate over our choices
+	// for i, choice := range m.list.Items() {
 
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
-		if m.cursor == i {
-			cursor = ">" // cursor!
-		}
+	// 	// Is the .list.Cursor() pointing at this choice?
+	// 	.list.Cursor() := " " // no .list.Cursor()
+	// 	if m..list.Cursor() == i {
+	// 		.list.Cursor() = ">" // .list.Cursor()!
+	// 	}
 
-		// Is this choice selected?
-		checked := " " // not selected
-		if _, ok := m.selected[i]; ok {
-			checked = "x" // selected!
-		}
+	// 	// Is this choice selected?
+	// 	checked := " " // not selected
+	// 	if _, ok := m.selected[i]; ok {
+	// 		checked = "x" // selected!
+	// 	}
 
-		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	}
+	// 	// Render the row
+	// 	s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+	// }
 
-	// The footer
-	s += "\nPress q to quit.\n"
+	// // The footer
+	// s += "\nPress q to quit.\n"
 
 	// Send the UI for rendering
-	return s
+	return "\n" + m.list.View()
 }
 
 type checklistModel struct {
-	choices  []string         // items on the to-do list
-	cursor   int              // which to-do list item our cursor is pointing at
+	list     list.Model       // Choosable items
 	selected map[int]struct{} // which to-do items are selected
 }
 
 // Default
-func initialModel(c []string) checklistModel {
+func initialModel(items []list.Item) checklistModel {
+	const defaultWidth = 20
 	return checklistModel{
-		choices: c,
+		list: list.New(items, itemDelegate{}, 20, 14),
 		// A map which indicates which choices are selected. We're using
 		// the  map like a mathematical set. The keys refer to the indexes
 		// of the `choices` slice, above.
@@ -103,7 +139,10 @@ func initialModel(c []string) checklistModel {
 }
 
 func main() {
-	choices := []string{"Buy carrots", "Buy celery", "Buy kohlrabi"}
+	choices := []list.Item{
+		item("Buy carrots"),
+		item("Buy celery"),
+		item("Buy kohlrabi")}
 
 	var m checklistModel = initialModel(choices)
 	p := tea.NewProgram(m)
@@ -112,7 +151,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	items := m.choices
+	items := m.list.Items()
 	// Check each item
 	for i, v := range items {
 		// check if selected
