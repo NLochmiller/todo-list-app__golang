@@ -57,12 +57,9 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	// Create checkbox
 	var checked string = " "
-	// cfn := uncheckedboxStyle.Render
 	if i.Checked() {
 		checked = "x"
-		// cfn = checkedboxStyle.Render
 	}
-	// checked = cfn("[" + checked + "]")
 	checked = "[" + checked + "]"
 
 	str := fmt.Sprintf("%d. %s", index+1, i.Title)
@@ -101,18 +98,6 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// These keys should exit the program.
 		case "ctrl+c", "q":
 			return m, tea.Quit
-
-		// // The "up" and "k" keys move the cursor up
-		// case "up", "k":
-		// 	if m.list.Cursor() > 0 {
-		// 		m.list.CursorUp()
-		// 	}
-
-		// // The "down" and "j" keys move the cursor down
-		// case "down", "j":
-		// 	if m.list.Cursor() < len(m.list.Items())-1 {
-		// 		m.list.CursorDown()
-		// 	}
 
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
