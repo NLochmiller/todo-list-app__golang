@@ -10,6 +10,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	listWidth  = 20
+	listHeight = 14
+)
+
 var (
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
@@ -115,7 +120,8 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			selectedItem := m.list.SelectedItem()
 			selectedCheckbox := selectedItem.(ChecklistItem)
 			selectedCheckbox.Toggle()
-			m.list.Items()[m.list.Cursor()] = selectedCheckbox
+			// TODO: Needs to not use cursor but rather position in list
+			m.list.Items()[m.list.Index()] = selectedCheckbox
 		}
 	}
 
@@ -125,31 +131,6 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ChecklistModel) View() string {
-	// // The header
-	// s := "What should we buy at the market?\n\n"
-
-	// // Iterate over our choices
-	// for i, choice := range m.list.Items() {
-
-	// 	// Is the .list.Cursor() pointing at this choice?
-	// 	.list.Cursor() := " " // no .list.Cursor()
-	// 	if m..list.Cursor() == i {
-	// 		.list.Cursor() = ">" // .list.Cursor()!
-	// 	}
-
-	// 	// Is this choice selected?
-	// 	checked := " " // not selected
-	// 	if _, ok := m.selected[i]; ok {
-	// 		checked = "x" // selected!
-	// 	}
-
-	// 	// Render the row
-	// 	s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	// }
-
-	// // The footer
-	// s += "\nPress q to quit.\n"
-
 	// Send the UI for rendering
 	return "\n" + m.list.View()
 }
@@ -160,11 +141,7 @@ type ChecklistModel struct {
 
 // Default
 func InitialModel(items []list.Item) ChecklistModel {
-	const defaultWidth = 20
 	return ChecklistModel{
-		list: list.New(items, itemDelegate{}, 20, 14),
-		// A map which indicates which choices are selected. We're using
-		// the  map like a mathematical set. The keys refer to the indexes
-		// of the `choices` slice, above.
+		list: list.New(items, itemDelegate{}, listWidth, listHeight),
 	}
 }

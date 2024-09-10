@@ -51,8 +51,8 @@ type XMLChecklistModel struct {
 	Items   []*XMLItemModel `xml:">task"`
 }
 
-func (m ChecklistItem) EncodeChecklistItem() XMLItemModel {
-	return XMLItemModel{
+func (m ChecklistItem) EncodeChecklistItem() *XMLItemModel {
+	return &XMLItemModel{
 		Title:   m.Title,
 		Checked: m.checked,
 	}
@@ -71,8 +71,8 @@ func (m ChecklistModel) EncodeChecklist() (buf []byte, err error) {
 	// Add items to xml model
 	for _, v := range m.list.Items() {
 		check := v.(ChecklistItem)
-		item := check.EncodeChecklistItem()
-		model.Items = append(model.Items, &item)
+		model.Items = append(model.Items, nil)
+		model.Items[len(model.Items) - 1] =  check.EncodeChecklistItem()
 	}
 
 	return xml.MarshalIndent(model, "", "\t")
