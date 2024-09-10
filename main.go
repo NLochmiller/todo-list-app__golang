@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,20 +14,36 @@ const DoDebug = true
 
 func main() {
 	choices := []list.Item{
+		ChecklistItem{"Fix multi page bug that causes checked to be messed with", false},
 		ChecklistItem{"XML encoding", true},
 		ChecklistItem{"XML decoding", true},
-		ChecklistItem{"Storage", false},
-		ChecklistItem{"Better styling", false},
+		ChecklistItem{"Storage", true},
+		ChecklistItem{"User defined storage paths", false},
 		ChecklistItem{"Editing", false},
+		ChecklistItem{"Multistate boxes", false}, // [ ] [-] [!] [?] [x]
+		ChecklistItem{"Better styling", false},
+		ChecklistItem{"Placeholder 1", false},
+		ChecklistItem{"Placeholder 2", false},
+		ChecklistItem{"Placeholder 3", false},
+		ChecklistItem{"Placeholder 4", false},
+		ChecklistItem{"Placeholder 5", false},
+		ChecklistItem{"Placeholder 6", false},
+		ChecklistItem{"Placeholder 7", false},
+		ChecklistItem{"Placeholder 8", false},
+		ChecklistItem{"Placeholder 9", false},
+		ChecklistItem{"Placeholder 10", false},
 	}
 
 	var m ChecklistModel = InitialModel(choices)
 
 	if DoDebug {
-		var err error
-		m, err = ReadChecklist("./input.xml")
-		if err != nil {
+		mod, err := ReadChecklist("./input.xml")
+		// If there was an error that is not a child of ErrNotExist (ie no file)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			log.Fatal(err)
+		} else if !errors.Is(err, os.ErrNotExist) {
+			// Only override m if the file exists
+			m = mod
 		}
 	}
 
