@@ -2,20 +2,34 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const DoDebug = true
+
 func main() {
 	choices := []list.Item{
+		ChecklistItem{"XML encoding", true},
+		ChecklistItem{"XML decoding", true},
 		ChecklistItem{"Storage", false},
 		ChecklistItem{"Better styling", false},
 		ChecklistItem{"Editing", false},
 	}
 
 	var m ChecklistModel = InitialModel(choices)
+
+	if DoDebug {
+		var err error
+		m, err = ReadChecklist("./input.xml")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	m.list.SetShowTitle(false)
 
 	p := tea.NewProgram(m)
@@ -24,6 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	/* Example
 	items := m.list.Items()
 	// Check each item
 	for _, v := range items {
@@ -35,6 +50,7 @@ func main() {
 
 		fmt.Printf("[%s] %q\n", checked, v)
 	}
+	*/
 
 	// Distance
 	fmt.Printf("\n\n\n")
@@ -54,4 +70,6 @@ func main() {
 		item := v.(ChecklistItem)
 		fmt.Printf("%q %t\n", item.Title, item.Checked())
 	}
+
+	WriteChecklist("./output.xml", m)
 }

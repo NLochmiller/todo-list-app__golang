@@ -1,10 +1,44 @@
+/*
+ * Convert checklists to xml, reading and writing that from the filesystem
+ * Most users will want to use the ReadChecklist and WriteChecklist functions
+ */
 package main
 
 import (
 	"encoding/xml"
+	"io"
+	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 )
+
+// Read the xml file into a checklist, returns empty model if err != nil
+func ReadChecklist(filepath string) (ChecklistModel, error) {
+	buf, err := os.ReadFile(filepath)
+	if err != nil && err != io.EOF {
+		return ChecklistModel{}, err
+	}
+	if buf == nil {
+		return ChecklistModel{}, os.ErrInvalid // TODO: Create custom error
+	}
+	return DecodeChecklist(buf)
+}
+
+// Wrapper for WriteChecklistPerms with hardcoded perms
+func WriteChecklist(filepath string, model ChecklistModel) (err error) {
+	return WriteChecklistPerms(filepath, model, 0644)
+}
+
+// Write the checklist converted to xml to the file at filepath creating it if
+// the file does not exist
+func WriteChecklistPerms(filepath string, model ChecklistModel, perm os.FileMode) (err error) {
+	buf, err := model.EncodeChecklist()
+	if err != nil {
+		return
+	}
+
+	return os.WriteFile(filepath, buf, perm)
+}
 
 type XMLItemModel struct {
 	XMLName xml.Name `xml:"task"`
