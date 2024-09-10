@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-
 func main() {
 	choices := []list.Item{
 		ChecklistItem{"Storage", false},
@@ -36,4 +35,12 @@ func main() {
 
 		fmt.Printf("[%s] %q\n", checked, v)
 	}
+
+	// Distance
+	fmt.Printf("\n\n\n")
+
+	// Testing
+	buf, _ := m.EncodeChecklist()
+	fmt.Println(string(buf))
+
 }

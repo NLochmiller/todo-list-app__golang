@@ -18,6 +18,7 @@ var (
 
 /* Custom list item */
 /* List ChecklistItem struct */
+/* Tasks */
 /* Implements list.Item */
 type ChecklistItem struct {
 	title   string // The display name of this item
@@ -155,7 +156,6 @@ func (m ChecklistModel) View() string {
 
 type ChecklistModel struct {
 	list     list.Model       // Choosable items
-	selected map[int]struct{} // which to-do items are selected
 }
 
 // Default
@@ -166,6 +166,5 @@ func InitialModel(items []list.Item) ChecklistModel {
 		// A map which indicates which choices are selected. We're using
 		// the  map like a mathematical set. The keys refer to the indexes
 		// of the `choices` slice, above.
-		selected: make(map[int]struct{}),
 	}
 }
