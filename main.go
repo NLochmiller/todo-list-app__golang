@@ -12,9 +12,9 @@ import (
 
 const DoDebug = true
 
-func main() {
-	choices := []list.Item{
-		ChecklistItem{"Fix multi page bug that causes checked to be messed with", false},
+func GetExampleList() ChecklistModel {
+	return InitialModel([]list.Item{
+		ChecklistItem{"Fix multi page bug", true},
 		ChecklistItem{"XML encoding", true},
 		ChecklistItem{"XML decoding", true},
 		ChecklistItem{"Storage", true},
@@ -32,19 +32,22 @@ func main() {
 		ChecklistItem{"Placeholder 8", false},
 		ChecklistItem{"Placeholder 9", false},
 		ChecklistItem{"Placeholder 10", false},
-	}
+	})
+}
 
-	var m ChecklistModel = InitialModel(choices)
+func main() {
+	var m ChecklistModel = GetExampleList()
 
-	if DoDebug {
-		mod, err := ReadChecklist("./input.xml")
-		// If there was an error that is not a child of ErrNotExist (ie no file)
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			log.Fatal(err)
-		} else if !errors.Is(err, os.ErrNotExist) {
-			// Only override m if the file exists
-			m = mod
-		}
+	var inPath, outPath string = "./database.xml", "./database.xml"
+
+	// Load from input
+	mod, err := ReadChecklist(inPath)
+	// If there was an error that is not a child of ErrNotExist (ie no file)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Fatal(err)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		// Only override m if the file exists
+		m = mod
 	}
 
 	m.list.SetShowTitle(false)
@@ -69,24 +72,5 @@ func main() {
 	}
 	*/
 
-	// Distance
-	fmt.Printf("\n\n\n")
-
-	// Testing
-	buf, _ := m.EncodeChecklist()
-	fmt.Println(string(buf))
-
-	fmt.Printf("\n\n\n")
-	mod, err := DecodeChecklist(buf)
-
-	if err != nil {
-		fmt.Errorf("a", err)
-	}
-
-	for _, v := range mod.list.Items() {
-		item := v.(ChecklistItem)
-		fmt.Printf("%q %t\n", item.Title, item.Checked())
-	}
-
-	WriteChecklist("./output.xml", m)
+	WriteChecklist(outPath, m)
 }
