@@ -14,11 +14,30 @@ import (
 var (
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	checkStyle        = lipgloss.NewStyle().Background(lipgloss.ANSIColor(12))
 )
 
-type item string
+/* Custom list item */
+/* List ChecklistItem struct */
+/* Implements list.Item */
+type ChecklistItem struct {
+	title   string // The display name of this item
+	checked bool   // Is this checked off?
+}
 
-func (i item) FilterValue() string { return "" }
+func (i ChecklistItem) FilterValue() string { return i.title }
+
+func (i *ChecklistItem) SetChecked(b bool) {
+	i.checked = b
+}
+func (i ChecklistItem) Checked() bool {
+	return i.checked
+}
+
+// Simply invert checked
+func (i *ChecklistItem) Toggle() {
+	i.checked = !(i.checked)
+}
 
 type itemDelegate struct{}
 
@@ -26,21 +45,30 @@ func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
+	i, ok := listItem.(ChecklistItem)
 	if !ok {
 		return
 	}
 
+	// Create checkbox
+	var checked string = " "
+	// cfn := uncheckedboxStyle.Render
+	if i.Checked() {
+		checked = "x"
+		// cfn = checkedboxStyle.Render
+	}
+	// checked = cfn("[" + checked + "]")
+	checked = "[" + checked + "]"
 
-	str := fmt.Sprintf("%d. %s", index+1, i)
+	str := fmt.Sprintf("%d. %s", index+1, i.title)
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemStyle.Render(strings.Join(s, " "))
+			return selectedItemStyle.Render("> " + strings.Join(s, " "))
 		}
 	}
 
-	fmt.Fprint(w, fn(str))
+	fmt.Fprint(w, fn(checked, str))
 }
 
 // Don't do any work for now
@@ -50,11 +78,18 @@ func (m checklistModel) Init() tea.Cmd {
 }
 
 func (m checklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	list, cmd := m.list.Update(msg)
+
+	if cmd != nil {
+		return m, cmd
+	}
+	m.list = list
+	
 	switch msg := msg.(type) {
 
 	// Is it a key press?
 	case tea.KeyMsg:
-
+		
 		// Cool, what was the actual key pressed?
 		switch msg.String() {
 
@@ -62,27 +97,25 @@ func (m checklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
-		// The "up" and "k" keys move the cursor up
-		case "up", "k":
-			if m.list.Cursor() > 0 {
-				m.list.CursorUp()
-			}
+		// // The "up" and "k" keys move the cursor up
+		// case "up", "k":
+		// 	if m.list.Cursor() > 0 {
+		// 		m.list.CursorUp()
+		// 	}
 
-		// The "down" and "j" keys move the cursor down
-		case "down", "j":
-			if m.list.Cursor() < len(m.list.Items())-1 {
-				m.list.CursorDown()
-			}
+		// // The "down" and "j" keys move the cursor down
+		// case "down", "j":
+		// 	if m.list.Cursor() < len(m.list.Items())-1 {
+		// 		m.list.CursorDown()
+		// 	}
 
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
 		case "enter", " ":
-			_, ok := m.selected[m.list.Cursor()]
-			if ok {
-				delete(m.selected, m.list.Cursor())
-			} else {
-				m.selected[m.list.Cursor()] = struct{}{}
-			}
+			selectedItem := m.list.SelectedItem()
+			selectedCheckbox := selectedItem.(ChecklistItem)
+			selectedCheckbox.Toggle()
+			m.list.Items()[m.list.Cursor()] = selectedCheckbox
 		}
 	}
 
@@ -140,11 +173,13 @@ func initialModel(items []list.Item) checklistModel {
 
 func main() {
 	choices := []list.Item{
-		item("Buy carrots"),
-		item("Buy celery"),
-		item("Buy kohlrabi")}
+		ChecklistItem{"Storage", false},
+		ChecklistItem{"Better styling", false},
+		ChecklistItem{"Editing", false},
+	}
 
 	var m checklistModel = initialModel(choices)
+	m.list.SetShowTitle(false)
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
@@ -153,10 +188,10 @@ func main() {
 
 	items := m.list.Items()
 	// Check each item
-	for i, v := range items {
+	for _, v := range items {
 		// check if selected
 		checked := " "
-		if _, ok := m.selected[i]; ok {
+		if v.(ChecklistItem).checked {
 			checked = "x" // selected!
 		}
 
