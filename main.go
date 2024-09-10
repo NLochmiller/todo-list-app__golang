@@ -8,12 +8,12 @@ import (
 )
 
 // Don't do any work for now
-func (m model) Init() tea.Cmd {
+func (m checkboxModel) Init() tea.Cmd {
 	// Just return `nil`, which means "no I/O right now, please."
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m checkboxModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -55,7 +55,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m checkboxModel) View() string {
 	// The header
 	s := "What should we buy at the market?\n\n"
 
@@ -85,15 +85,17 @@ func (m model) View() string {
 	return s
 }
 
-type model struct {
+type checkboxModel struct {
 	choices  []string         // items on the to-do list
 	cursor   int              // which to-do list item our cursor is pointing at
 	selected map[int]struct{} // which to-do items are selected
 }
 
+
+
 // Default
-func initialModel(c []string) model {
-	return model{
+func initialModel(c []string) checkboxModel {
+	return checkboxModel{
 		choices: c,
 		// A map which indicates which choices are selected. We're using
 		// the  map like a mathematical set. The keys refer to the indexes
@@ -105,7 +107,7 @@ func initialModel(c []string) model {
 func main() {
 	choices := []string{"Buy carrots", "Buy celery", "Buy kohlrabi"}
 
-	var m model = initialModel(choices)
+	var m checkboxModel = initialModel(choices)
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
