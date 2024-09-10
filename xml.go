@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/xml"
+
+	"github.com/charmbracelet/bubbles/list"
 )
 
 type XMLItemModel struct {
@@ -10,9 +12,14 @@ type XMLItemModel struct {
 	Checked bool     `xml:"checked,attr"`
 }
 
+type XMLChecklistModel struct {
+	XMLName xml.Name        `xml:"checklist"`
+	Items   []*XMLItemModel `xml:">task"`
+}
+
 func (m ChecklistItem) EncodeChecklistItem() XMLItemModel {
 	return XMLItemModel{
-		Title:   m.title,
+		Title:   m.Title,
 		Checked: m.checked,
 	}
 }
@@ -22,10 +29,6 @@ func (m ChecklistModel) EncodeChecklist() (buf []byte, err error) {
 	err = nil
 
 	// Encode each checklist item
-	type XMLChecklistModel struct {
-		XMLName xml.Name        `xml:"checklist"`
-		Items   []*XMLItemModel `xml:">task"`
-	}
 
 	model := XMLChecklistModel{
 		Items: make([]*XMLItemModel, 0),
@@ -39,4 +42,29 @@ func (m ChecklistModel) EncodeChecklist() (buf []byte, err error) {
 	}
 
 	return xml.MarshalIndent(model, "", "\t")
+}
+
+// Decode a single check item
+func (m XMLItemModel) Decode() ChecklistItem {
+	return ChecklistItem{
+		Title:   m.Title,
+		checked: m.Checked,
+	}
+}
+
+// Decode an entire checklist from xml
+func DecodeChecklist(buf []byte) (ChecklistModel, error) {
+	// Parse xml into model
+	var model XMLChecklistModel = XMLChecklistModel{}
+	var err error = xml.Unmarshal(buf, &model)
+	if err != nil {
+		return ChecklistModel{}, err
+	}
+
+	// Parse xml model into checklist model
+	var outputItems []list.Item = make([]list.Item, 0)
+	for _, v := range model.Items {
+		outputItems = append(outputItems, v.Decode())
+	}
+	return InitialModel(outputItems), err
 }

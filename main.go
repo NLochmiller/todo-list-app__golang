@@ -43,4 +43,15 @@ func main() {
 	buf, _ := m.EncodeChecklist()
 	fmt.Println(string(buf))
 
+	fmt.Printf("\n\n\n")
+	mod, err := DecodeChecklist(buf)
+
+	if err != nil {
+		fmt.Errorf("a", err)
+	}
+
+	for _, v := range mod.list.Items() {
+		item := v.(ChecklistItem)
+		fmt.Printf("%q %t\n", item.Title, item.Checked())
+	}
 }

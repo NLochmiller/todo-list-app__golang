@@ -21,11 +21,11 @@ var (
 /* Tasks */
 /* Implements list.Item */
 type ChecklistItem struct {
-	title   string // The display name of this item
+	Title   string // The display name of this item
 	checked bool   // Is this checked off?
 }
 
-func (i ChecklistItem) FilterValue() string { return i.title }
+func (i ChecklistItem) FilterValue() string { return i.Title }
 
 func (i *ChecklistItem) SetChecked(b bool) {
 	i.checked = b
@@ -60,7 +60,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	// checked = cfn("[" + checked + "]")
 	checked = "[" + checked + "]"
 
-	str := fmt.Sprintf("%d. %s", index+1, i.title)
+	str := fmt.Sprintf("%d. %s", index+1, i.Title)
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
@@ -155,7 +155,7 @@ func (m ChecklistModel) View() string {
 }
 
 type ChecklistModel struct {
-	list     list.Model       // Choosable items
+	list list.Model // Choosable items
 }
 
 // Default
