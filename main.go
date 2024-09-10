@@ -91,8 +91,6 @@ type checklistModel struct {
 	selected map[int]struct{} // which to-do items are selected
 }
 
-
-
 // Default
 func initialModel(c []string) checklistModel {
 	return checklistModel{
@@ -112,5 +110,17 @@ func main() {
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
+	}
+
+	items := m.choices
+	// Check each item
+	for i, v := range items {
+		// check if selected
+		checked := " "
+		if _, ok := m.selected[i]; ok {
+			checked = "x" // selected!
+		}
+
+		fmt.Printf("[%s] %q\n", checked, v)
 	}
 }
