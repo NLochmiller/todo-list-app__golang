@@ -130,7 +130,7 @@ func (m ChecklistModel) ExitState() {
 	switch m.state {
 	case StateEdit:
 		// Set the original item to the edited item
-		m.list.Items()[m.edit.Index] = *m.edit.Item
+		m.list.Items()[m.edit.EditingItemIndex] = *m.edit.Item
 		break
 	}
 }
@@ -153,14 +153,13 @@ func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.list.Items()[m.list.Index()] = selectedCheckbox
 			}
 			break
-		case "e":
+		case "ctrl+e":
 			// Exit current state
 			m.ExitState()
 			// Enter edit state
 			// Set the pointer to the new edit one, store the index of the item
 			item := m.list.Items()[m.list.Index()].(ChecklistItem)
-			m.edit.Item = &item
-			m.edit.Index = m.list.Index()
+			m.edit.SetItem(&item, m.list.Index())
 			m.state = StateEdit
 			return m, nil
 		default:
@@ -218,7 +217,7 @@ func (m ChecklistModel) View() string {
 func InitialModel(items []list.Item) ChecklistModel {
 	return ChecklistModel{
 		list:  list.New(items, itemDelegate{}, listWidth, listHeight),
-		edit:  EditTaskModel{nil, 0},
+		edit:  EditTaskModel{}.New(),
 		state: StateList,
 	}
 }
