@@ -99,11 +99,15 @@ func (m ChecklistModel) Init() tea.Cmd {
 }
 
 // Update a sub model of checklist model
-func UpdateSubModel(m ChecklistModel, msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var subModel tea.Model
 	var cmd tea.Cmd
 
-	// fmt.Println((msg == tea.KeyMsg))
+	// switch msg := msg.(type) {
+	// case tea.KeyMsg:
+	// 	// Cool, what was the actual key pressed?
+	// 	fmt.Println(msg.String())
+	// }
 
 	switch m.state {
 	case StateList:
@@ -150,10 +154,14 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = StateEdit
 			break
 		default:
-			// Unrecognized, pass to the state
-			mod, cmd := UpdateSubModel(m, msg)
+			mod, cmd := m.UpdateSubModel(msg)
+			m = mod.(ChecklistModel)
 			return mod, cmd
 		}
+	default:
+		mod, cmd := m.UpdateSubModel(msg)
+		m = mod.(ChecklistModel)
+		return mod, cmd
 	}
 
 	// Return the updated model to the Bubble Tea runtime for processing.
