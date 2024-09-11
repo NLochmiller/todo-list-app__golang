@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -20,11 +22,13 @@ func (m EditTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// Cool, what was the actual key pressed?
 		switch msg.String() {
+
 		}
 	}
 	return m, nil
 }
 
 func (m EditTaskModel) View() string {
-	return ""
+	str := fmt.Sprintln(m.Item.Title)
+	return str
 }

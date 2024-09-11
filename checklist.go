@@ -126,6 +126,17 @@ func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// Perform any closing actions needed for the current state
+func (m ChecklistModel) ExitState() {
+	switch m.state {
+	case StateEdit:
+		// Set the original item to the edited item
+		m.list.Items()[m.edit.Index] = *m.edit.Item
+		break
+	}
+}
+
+// Update the checklist model
 func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
@@ -137,18 +148,30 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
 		case "enter", " ":
-			selectedItem := m.list.SelectedItem()
-			selectedCheckbox := selectedItem.(ChecklistItem)
-			selectedCheckbox.Toggle()
-			// TODO: Needs to not use cursor but rather position in list
-			m.list.Items()[m.list.Index()] = selectedCheckbox
+			if m.state == StateList {
+				selectedItem := m.list.SelectedItem()
+				selectedCheckbox := selectedItem.(ChecklistItem)
+				selectedCheckbox.Toggle()
+
+				m.list.Items()[m.list.Index()] = selectedCheckbox
+			}
 			break
 		case "e":
+			// Exit current state
+			m.ExitState()
+			// Enter edit state
 			// Set the pointer to the new edit one, store the index of the item
 			item := m.list.Items()[m.list.Index()].(ChecklistItem)
 			m.edit.Item = &item
 			m.edit.Index = m.list.Index()
 			m.state = StateEdit
+			return m, nil
+
+		case "l":
+			// Exit current state
+			m.ExitState()
+			// Enter list state
+			m.state = StateList
 			return m, nil
 		case "q", "ctrl c":
 			return m, tea.Quit
