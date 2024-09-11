@@ -14,7 +14,14 @@ func (m EditTaskModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m EditTaskModel) Update(tea.Msg) (tea.Model, tea.Cmd) {
+func (m EditTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	// Is it a key press?
+	case tea.KeyMsg:
+		// Cool, what was the actual key pressed?
+		switch msg.String() {
+		}
+	}
 	return m, nil
 }
 

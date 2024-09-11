@@ -103,12 +103,6 @@ func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var subModel tea.Model
 	var cmd tea.Cmd
 
-	// switch msg := msg.(type) {
-	// case tea.KeyMsg:
-	// 	// Cool, what was the actual key pressed?
-	// 	fmt.Println(msg.String())
-	// }
-
 	switch m.state {
 	case StateList:
 		var list list.Model
@@ -117,7 +111,9 @@ func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 		m.list = list
+		break
 	case StateEdit:
+		fmt.Println(selectedItemStyle.Render("edit"))
 		subModel, cmd = m.edit.Update(msg)
 		m.edit = subModel.(EditTaskModel)
 		break
@@ -149,10 +145,13 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		case "e":
 			// Set the pointer to the new edit one, store the index of the item
-			m.edit.Item = m.list.Items()[m.list.Index()].(*ChecklistItem)
+			item := m.list.Items()[m.list.Index()].(ChecklistItem)
+			m.edit.Item = &item
 			m.edit.Index = m.list.Index()
 			m.state = StateEdit
-			break
+			return m, nil
+		case "q", "ctrl c":
+			return m, tea.Quit
 		default:
 			mod, cmd := m.UpdateSubModel(msg)
 			m = mod.(ChecklistModel)
@@ -171,7 +170,14 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ChecklistModel) View() string {
 	// Send the UI for rendering
-	return "\n" + m.list.View()
+	switch m.state {
+	case StateList:
+		return m.list.View()
+	case StateEdit:
+		return m.edit.View()
+	}
+
+	return ""
 }
 
 // Default
