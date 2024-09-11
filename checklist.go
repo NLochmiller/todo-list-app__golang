@@ -113,7 +113,6 @@ func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list = list
 		break
 	case StateEdit:
-		fmt.Println(selectedItemStyle.Render("edit"))
 		subModel, cmd = m.edit.Update(msg)
 		m.edit = subModel.(EditTaskModel)
 		break
@@ -136,9 +135,7 @@ func (m ChecklistModel) ExitState() {
 	}
 }
 
-// Update the checklist model
-func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
+func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -166,15 +163,6 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.edit.Index = m.list.Index()
 			m.state = StateEdit
 			return m, nil
-
-		case "l":
-			// Exit current state
-			m.ExitState()
-			// Enter list state
-			m.state = StateList
-			return m, nil
-		case "q", "ctrl c":
-			return m, tea.Quit
 		default:
 			mod, cmd := m.UpdateSubModel(msg)
 			m = mod.(ChecklistModel)
@@ -188,6 +176,29 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Return the updated model to the Bubble Tea runtime for processing.
 	// Note that we're not returning a command.
+	return m, nil
+
+}
+
+// Update the main checklist model
+func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Check if we should quit
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		}
+	}
+
+	// Pass update to proper update function
+	switch m.state {
+	case StateList:
+		return m.UpdateStateList(msg)
+	case StateEdit:
+		return m.UpdateStateEdit(msg)
+	}
+
 	return m, nil
 }
 
