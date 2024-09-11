@@ -21,6 +21,25 @@ var (
 	checkStyle        = lipgloss.NewStyle().Background(lipgloss.ANSIColor(12))
 )
 
+// Repersents the state in a list
+type ChecklistState int
+
+const (
+	// State for viewing the list, ie the default state
+	StateList ChecklistState = iota
+	// State for editing a task in the checklist
+	StateEdit
+	// State for adding a task into the checklist
+	StateAdd
+)
+
+// Model that repersents the main state
+type ChecklistModel struct {
+	list  list.Model    // Choosable items
+	edit  EditTaskModel // Model to change
+	state ChecklistState
+}
+
 /* Custom list item */
 /* List ChecklistItem struct */
 /* Tasks */
@@ -79,26 +98,42 @@ func (m ChecklistModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	list, cmd := m.list.Update(msg)
+// Update a sub model of checklist model
+func UpdateSubModel(m ChecklistModel, msg tea.Msg) (tea.Model, tea.Cmd) {
+	var subModel tea.Model
+	var cmd tea.Cmd
+
+	// fmt.Println((msg == tea.KeyMsg))
+
+	switch m.state {
+	case StateList:
+		var list list.Model
+		list, cmd = m.list.Update(msg)
+		if cmd != nil {
+			m.list = list
+		}
+		return m, cmd
+	case StateEdit:
+		subModel, cmd = m.edit.Update(msg)
+		m.edit = subModel.(EditTaskModel)
+		break
+	}
 
 	if cmd != nil {
 		return m, cmd
 	}
-	m.list = list
+
+	return m, nil
+}
+
+func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
 	// Is it a key press?
 	case tea.KeyMsg:
-
 		// Cool, what was the actual key pressed?
 		switch msg.String() {
-
-		// These keys should exit the program.
-		case "ctrl+c", "q":
-			return m, tea.Quit
-
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
 		case "enter", " ":
@@ -107,6 +142,17 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			selectedCheckbox.Toggle()
 			// TODO: Needs to not use cursor but rather position in list
 			m.list.Items()[m.list.Index()] = selectedCheckbox
+			break
+		case "e":
+			// Set the pointer to the new edit one, store the index of the item
+			m.edit.Item = m.list.Items()[m.list.Index()].(*ChecklistItem)
+			m.edit.Index = m.list.Index()
+			m.state = StateEdit
+			break
+		default:
+			// Unrecognized, pass to the state
+			mod, cmd := UpdateSubModel(m, msg)
+			return mod, cmd
 		}
 	}
 
@@ -120,13 +166,11 @@ func (m ChecklistModel) View() string {
 	return "\n" + m.list.View()
 }
 
-type ChecklistModel struct {
-	list list.Model // Choosable items
-}
-
 // Default
 func InitialModel(items []list.Item) ChecklistModel {
 	return ChecklistModel{
-		list: list.New(items, itemDelegate{}, listWidth, listHeight),
+		list:  list.New(items, itemDelegate{}, listWidth, listHeight),
+		edit:  EditTaskModel{nil, 0},
+		state: StateList,
 	}
 }

@@ -38,7 +38,7 @@ func GetExampleList() ChecklistModel {
 func main() {
 	var m ChecklistModel = GetExampleList()
 
-	var inPath, outPath string = "./database.xml", "./database.xml"
+	var inPath, outPath string = "../database.xml", "../database.xml"
 
 	// Load from input
 	mod, err := ReadChecklist(inPath)
