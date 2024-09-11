@@ -114,9 +114,9 @@ func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var list list.Model
 		list, cmd = m.list.Update(msg)
 		if cmd != nil {
-			m.list = list
+			return m, cmd
 		}
-		return m, cmd
+		m.list = list
 	case StateEdit:
 		subModel, cmd = m.edit.Update(msg)
 		m.edit = subModel.(EditTaskModel)
