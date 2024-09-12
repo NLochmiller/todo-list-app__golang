@@ -10,9 +10,18 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
+var (
 	listWidth  = 20
 	listHeight = 14
+	/*
+	 * Fixed sizes for the list
+	 * When non zero:
+	 *   Width and or height are respecitvly set to listFixedWidth/listFixedHeight
+	 * When 0:
+	 *   Uses the screen width and/or height as listWidth/Height respectivly
+	 */
+	listFixedWidth  uint = 20
+	listFixedHeight uint = 14
 )
 
 var (
@@ -187,6 +196,22 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		}
+	case tea.WindowSizeMsg:
+		// Only do this in the list state to avoid race conditions
+		if m.state == StateList {
+			// Update width and height. See comments at listFixedWith for detail
+			if listFixedWidth == 0 {
+				listWidth = msg.Width
+			} else {
+				listWidth = int(listFixedWidth)
+			}
+			if listFixedHeight == 0 {
+				listHeight = msg.Height
+			} else {
+				listHeight = int(listFixedHeight)
+			}
+			m = InitialModel(m.list.Items())
 		}
 	}
 
