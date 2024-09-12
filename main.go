@@ -35,10 +35,11 @@ func GetExampleList() ChecklistModel {
 	})
 }
 
-func main() {
-	var m ChecklistModel = GetExampleList()
+var inPath, OutPath string = "../database.xml", "../database.xml"
 
-	var inPath, outPath string = "../database.xml", "../database.xml"
+func main() {
+	var mi ChecklistModel = GetExampleList()
+	var m *ChecklistModel = &mi
 
 	// Load from input
 	mod, err := ReadChecklist(inPath)
@@ -47,7 +48,7 @@ func main() {
 		log.Fatal(err)
 	} else if !errors.Is(err, os.ErrNotExist) {
 		// Only override m if the file exists
-		m = mod
+		*m = mod
 	}
 
 	m.list.SetShowTitle(false)
@@ -57,7 +58,7 @@ func main() {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
-
+	fmt.Printf("Post Exit Size is %d\n", len(m.list.Items()))
 	/* Example
 	items := m.list.Items()
 	// Check each item
@@ -71,6 +72,6 @@ func main() {
 		fmt.Printf("[%s] %q\n", checked, v)
 	}
 	*/
+	// WriteChecklist(OutPath, *m)
 
-	WriteChecklist(outPath, m)
 }

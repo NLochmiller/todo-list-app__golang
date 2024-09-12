@@ -120,9 +120,9 @@ func (m ChecklistModel) Init() tea.Cmd {
 }
 
 // Update a sub model of checklist model
-func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var subModel tea.Model
-	var cmd tea.Cmd
+	var cmd tea.Cmd = nil
 
 	switch m.state {
 	case StateList:
@@ -139,11 +139,7 @@ func (m ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		break
 	}
 
-	if cmd != nil {
-		return m, cmd
-	}
-
-	return m, nil
+	return m, cmd
 }
 
 // Perform any closing actions needed for the current state
@@ -184,18 +180,21 @@ func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = StateEdit
 			return m, nil
 		case "a", "ctrl+a":
-			item := ChecklistItem{newTaskText, false}
-			cmd := m.list.InsertItem(m.list.Index(), item)
+			// item :=
+			// var count = len(m.list.Items())
+			cmd := m.list.InsertItem(m.list.Index(), ChecklistItem{newTaskText, false})
+			// fmt.Printf("Size is %d, should be %d", len(m.list.Items()), count+1)
 			return m, cmd
+
 		default:
-			mod, cmd := m.UpdateSubModel(msg)
-			m = mod.(ChecklistModel)
-			return mod, cmd
+			_, cmd := m.UpdateSubModel(msg)
+			// m = mod.(ChecklistModel)
+			return m, cmd
 		}
 	default:
-		mod, cmd := m.UpdateSubModel(msg)
-		m = mod.(ChecklistModel)
-		return mod, cmd
+		_, cmd := m.UpdateSubModel(msg)
+		// m = mod.(ChecklistModel)
+		return m, cmd
 	}
 
 	// Return the updated model to the Bubble Tea runtime for processing.
@@ -211,6 +210,9 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
+			// TODO: Find way to update the list properly
+			WriteChecklist(OutPath, m)
+			fmt.Printf("Exit Size is %d\n", len(m.list.Items()))
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
