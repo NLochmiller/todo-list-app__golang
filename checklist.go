@@ -24,11 +24,14 @@ var (
 	listFixedHeight uint = 14
 )
 
+// styles
 var (
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	checkStyle        = lipgloss.NewStyle().Background(lipgloss.ANSIColor(12))
 )
+
+const newTaskText string = "New Task"
 
 // Repersents the state in a list
 type ChecklistState int
@@ -47,6 +50,15 @@ type ChecklistModel struct {
 	list  list.Model    // Choosable items
 	edit  EditTaskModel // Model to change
 	state ChecklistState
+}
+
+// Default
+func InitialModel(items []list.Item) ChecklistModel {
+	return ChecklistModel{
+		list:  list.New(items, itemDelegate{}, listWidth, listHeight),
+		edit:  EditTaskModel{}.New(),
+		state: StateList,
+	}
 }
 
 /* Custom list item */
@@ -171,6 +183,10 @@ func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.edit.SetItem(&item, m.list.Index())
 			m.state = StateEdit
 			return m, nil
+		case "a", "ctrl+a":
+			item := ChecklistItem{newTaskText, false}
+			cmd := m.list.InsertItem(m.list.Index(), item)
+			return m, cmd
 		default:
 			mod, cmd := m.UpdateSubModel(msg)
 			m = mod.(ChecklistModel)
@@ -236,13 +252,4 @@ func (m ChecklistModel) View() string {
 	}
 
 	return ""
-}
-
-// Default
-func InitialModel(items []list.Item) ChecklistModel {
-	return ChecklistModel{
-		list:  list.New(items, itemDelegate{}, listWidth, listHeight),
-		edit:  EditTaskModel{}.New(),
-		state: StateList,
-	}
 }
