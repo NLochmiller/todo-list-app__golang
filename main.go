@@ -58,20 +58,5 @@ func main() {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Post Exit Size is %d\n", len(m.list.Items()))
-	/* Example
-	items := m.list.Items()
-	// Check each item
-	for _, v := range items {
-		// check if selected
-		checked := " "
-		if v.(ChecklistItem).checked {
-			checked = "x" // selected!
-		}
-
-		fmt.Printf("[%s] %q\n", checked, v)
-	}
-	*/
-	// TODO: Get the model's list to actually be updated
 	WriteChecklist(OutPath, *m)
 }

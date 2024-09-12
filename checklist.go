@@ -212,11 +212,10 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c":
-			// TODO: Find way to update the list properly
-			// WriteChecklist(OutPath, m)
-			fmt.Printf("Exit Size is %d\n", len(m.list.Items()))
+		case "ctrl+c":
 			return m, tea.Quit
+		case "ctrl+z":
+			return m, tea.Suspend
 		}
 	case tea.WindowSizeMsg:
 		// Only do this in the list state to avoid race conditions
