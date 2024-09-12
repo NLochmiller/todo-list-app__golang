@@ -185,7 +185,9 @@ func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmd := m.list.InsertItem(m.list.Index(), ChecklistItem{newTaskText, false})
 			// fmt.Printf("Size is %d, should be %d", len(m.list.Items()), count+1)
 			return m, cmd
-
+		case "d", "ctrl+d":
+			m.list.RemoveItem(m.list.Index())
+			return m, nil
 		default:
 			_, cmd := m.UpdateSubModel(msg)
 			// m = mod.(ChecklistModel)

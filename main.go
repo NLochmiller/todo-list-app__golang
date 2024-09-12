@@ -72,6 +72,7 @@ func main() {
 		fmt.Printf("[%s] %q\n", checked, v)
 	}
 	*/
+	// TODO: Get the model's list to actually be updated
 	// WriteChecklist(OutPath, *m)
 
 }
