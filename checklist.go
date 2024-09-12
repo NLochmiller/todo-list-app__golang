@@ -47,15 +47,16 @@ const (
 
 // Model that repersents the main state
 type ChecklistModel struct {
-	list  list.Model    // Choosable items
+	list  *list.Model   // Choosable items
 	edit  EditTaskModel // Model to change
 	state ChecklistState
 }
 
 // Default
 func InitialModel(items []list.Item) ChecklistModel {
+	list := list.New(items, itemDelegate{}, listWidth, listHeight)
 	return ChecklistModel{
-		list:  list.New(items, itemDelegate{}, listWidth, listHeight),
+		list:  &list,
 		edit:  EditTaskModel{}.New(),
 		state: StateList,
 	}
@@ -131,7 +132,7 @@ func (m *ChecklistModel) UpdateSubModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cmd != nil {
 			return m, cmd
 		}
-		m.list = list
+		*(m.list) = list
 		break
 	case StateEdit:
 		subModel, cmd = m.edit.Update(msg)
@@ -213,7 +214,7 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			// TODO: Find way to update the list properly
-			WriteChecklist(OutPath, m)
+			// WriteChecklist(OutPath, m)
 			fmt.Printf("Exit Size is %d\n", len(m.list.Items()))
 			return m, tea.Quit
 		}

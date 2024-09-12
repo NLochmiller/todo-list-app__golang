@@ -73,6 +73,5 @@ func main() {
 	}
 	*/
 	// TODO: Get the model's list to actually be updated
-	// WriteChecklist(OutPath, *m)
-
+	WriteChecklist(OutPath, *m)
 }
