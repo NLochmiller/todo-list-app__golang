@@ -20,7 +20,7 @@ var (
 	 * When 0:
 	 *   Uses the screen width and/or height as listWidth/Height respectivly
 	 */
-	listFixedWidth  uint = 20
+	listFixedWidth  uint = 80
 	listFixedHeight uint = 14
 )
 
@@ -211,7 +211,7 @@ func (m ChecklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				listHeight = int(listFixedHeight)
 			}
-			m = InitialModel(m.list.Items())
+			m.list.SetSize(listWidth, listHeight)
 		}
 	}
 
