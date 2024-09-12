@@ -21,7 +21,7 @@ var (
 	 *   Uses the screen width and/or height as listWidth/Height respectivly
 	 */
 	listFixedWidth  uint = 80
-	listFixedHeight uint = 14
+	listFixedHeight uint = 30
 )
 
 // styles
@@ -180,11 +180,15 @@ func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.edit.SetItem(&item, m.list.Index())
 			m.state = StateEdit
 			return m, nil
+		case "i", "ctrl+i":
+			// Insert a item at the current index
+			cmd := m.list.InsertItem(m.list.Index(),
+				ChecklistItem{newTaskText, false})
+			return m, cmd
 		case "a", "ctrl+a":
-			// item :=
-			// var count = len(m.list.Items())
-			cmd := m.list.InsertItem(m.list.Index(), ChecklistItem{newTaskText, false})
-			// fmt.Printf("Size is %d, should be %d", len(m.list.Items()), count+1)
+			// Append a new item to the list
+			cmd := m.list.InsertItem(len(m.list.Items()),
+				ChecklistItem{newTaskText, false})
 			return m, cmd
 		case "d", "ctrl+d":
 			m.list.RemoveItem(m.list.Index())

@@ -61,7 +61,7 @@ func (m *EditTaskModel) SetItem(item *ChecklistItem, index int) {
 
 		switch i {
 		case 0:
-			t.Placeholder = "Nickname"
+			t.Placeholder = "Task"
 			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
