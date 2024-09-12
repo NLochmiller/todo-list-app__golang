@@ -4,6 +4,7 @@ package main
 // https://github.com/charmbracelet/bubbletea/tree/master/examples/textinputs
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"
@@ -25,6 +26,9 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
+// How many input fields we want
+const numInputs int = 1
+
 /* Implements the tea model interface */
 type EditTaskModel struct {
 	// Variables related to the current model
@@ -38,7 +42,7 @@ type EditTaskModel struct {
 
 func (m EditTaskModel) New() EditTaskModel {
 	m = EditTaskModel{
-		inputs: make([]textinput.Model, 3),
+		inputs: make([]textinput.Model, numInputs),
 	}
 	return m
 }
@@ -50,9 +54,10 @@ func (m *EditTaskModel) SetItem(item *ChecklistItem, index int) {
 
 	var t textinput.Model
 	for i := range m.inputs {
+
 		t = textinput.New()
 		t.Cursor.Style = cursorStyle
-		t.CharLimit = 32
+		t.CharLimit = 0 // Accept infinite characters
 
 		switch i {
 		case 0:
@@ -60,17 +65,25 @@ func (m *EditTaskModel) SetItem(item *ChecklistItem, index int) {
 			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
-		case 1:
-			t.Placeholder = "Email"
-			t.CharLimit = 64
-		case 2:
-			t.Placeholder = "Password"
-			t.EchoMode = textinput.EchoPassword
-			t.EchoCharacter = '•'
+			t.SetValue(m.Item.Title)
+			// case 1:
+			// 	t.Placeholder = "Email"
+			// 	t.CharLimit = 64
+			// case 2:
+			// 	t.Placeholder = "Password"
+			// 	t.EchoMode = textinput.EchoPassword
+			// 	t.EchoCharacter = '•'
 		}
 
 		m.inputs[i] = t
 	}
+}
+
+// Exits the edit state, does not save changes
+func (m ChecklistModel) exitToList(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.ExitState()
+	m.state = StateList
+	return m, nil
 }
 
 /* Update handlers */
@@ -80,12 +93,11 @@ func (m ChecklistModel) UpdateStateEdit(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Is it a key press?
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+l":
-			// Exit current state
-			m.ExitState()
-			// Enter list state
-			m.state = StateList
-			return m, nil
+		case "ctrl+s": // Save the items then return to the list state
+			m.edit.saveInputsToItem()
+			return m.exitToList(msg)
+		case "ctrl+q": // Exit to the list state. Does not change current state
+			return m.exitToList(msg)
 		default:
 			return m.UpdateSubModel(msg)
 		}
@@ -105,6 +117,11 @@ func (m *EditTaskModel) updateInputFields(msg tea.Msg) tea.Cmd {
 	}
 
 	return tea.Batch(cmds...)
+}
+
+// Get the data from the input into the item
+func (m EditTaskModel) saveInputsToItem() {
+	m.Item.Title = m.inputs[0].Value()
 }
 
 /* Implement tea.Model */
@@ -130,13 +147,16 @@ func (m EditTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(cmds...)
 
 		// Set focus to next input
-		case "tab", "shift+tab", "enter", "up", "down":
+		case "tab", "shift+tab", "up", "down", "enter":
 			s := msg.String()
 
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
 			if s == "enter" && m.focusIndex == len(m.inputs) {
-				return m, tea.Quit
+				//TODO: May need to disable, need to find way to have
+				// custom tea.Msg
+				// m.saveInputsToItem()
+				// return m, tea.Quit
 			}
 
 			// Cycle indexes
@@ -177,6 +197,10 @@ func (m EditTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m EditTaskModel) View() string {
 	var b strings.Builder
+
+	b.WriteString(helpStyle.Render("Editing task #"+strconv.Itoa(m.EditingItemIndex),
+		string(m.Item.Title)))
+	b.WriteRune('\n')
 
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())

@@ -153,7 +153,7 @@ func (m ChecklistModel) UpdateStateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.list.Items()[m.list.Index()] = selectedCheckbox
 			}
 			break
-		case "ctrl+e":
+		case "e", "ctrl+e":
 			// Exit current state
 			m.ExitState()
 			// Enter edit state
